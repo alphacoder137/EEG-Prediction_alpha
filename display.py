@@ -374,9 +374,9 @@ elif section == "Statistical Hypothesis Testing":
     """)
 
     def perform_anova_test(X, y):
-        preictal = X[y == 0]
-        interictal = X[y == 1]
-        ictal = X[y == 2]
+        preictal = X[y == 0].flatten()  # Flatten the array to ensure 1D
+        interictal = X[y == 1].flatten()  # Flatten the array to ensure 1D
+        ictal = X[y == 2].flatten()  # Flatten the array to ensure 1D
 
         # ANOVA Test
         f_stat, p_value = f_oneway(preictal, interictal, ictal)
