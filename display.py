@@ -454,6 +454,13 @@ def display_fusion_prediction(index, results_dfs):
 if section == "EEG Fusion Prediction":
     st.header("EEG Fusion Prediction and Visualization")
     
+    st.markdown("""
+    **Overview:**  
+    This section visualizes a raw EEG recording and predicts its classification using a fusion model of five different machine learning algorithms (CNN, KNN, RF, SVM, and AdaBoost).  
+    The fusion model aggregates the predictions from each of these models using probability averaging to make the final prediction.  
+    This approach helps improve robustness by combining multiple models’ strengths while mitigating their individual weaknesses.
+    """)
+
     if 'X' in globals() and 'y' in globals():
         sample_index = st.slider('Select Test Sample Index', 0, 29, 0)
         
@@ -476,6 +483,15 @@ if section == "EEG Fusion Prediction":
 # ---- Exploratory Data Analysis (EDA) ----
 elif section == "EDA":
     st.header("Exploratory Data Analysis (EDA)")
+
+    st.markdown("""
+    **Overview:**  
+    This section helps analyze the EEG data through exploratory techniques.  
+    Key analyses include:
+    - **Stationarity Tests:** To check whether the EEG signal has a constant mean and variance over time using the ADF and KPSS tests.
+    - **Frequency Domain Analysis:** To examine the distribution of power across various frequency bands using the Power Spectral Density (PSD) estimate.
+    - **Statistical Feature Extraction:** To extract key summary statistics (e.g., mean, variance) that can be used for further modeling.
+    """)
 
     def stationarity_tests(data):
         adf_result = adfuller(data)
@@ -518,6 +534,13 @@ elif section == "EDA":
 elif section == "Signal Processing":
     st.header("Signal Processing and Noise Reduction")
 
+    st.markdown("""
+    **Overview:**  
+    This section focuses on signal processing techniques, especially filtering to reduce noise.  
+    Here, a band-pass filter is applied to retain frequencies in the range of interest (e.g., 0.5–50 Hz) while filtering out noise.  
+    The filtered signal is then visualized to show the effect of noise reduction.
+    """)
+
     def bandpass_filter(data, lowcut=0.5, highcut=50.0, fs=256, order=5):
         nyquist = 0.5 * fs
         low = lowcut / nyquist
@@ -543,6 +566,13 @@ elif section == "Signal Processing":
 # ---- Bayesian Inference and Probabilistic Models ----
 elif section == "Bayesian Inference":
     st.header("Bayesian Inference and Probabilistic Models")
+
+    st.markdown("""
+    **Overview:**  
+    Bayesian inference allows us to update the probability of a hypothesis as more evidence or data becomes available.  
+    In this section, we apply a Bayesian Ridge model to the EEG data and predict the class of a selected sample.  
+    We also visualize the posterior distribution to show the uncertainty in the prediction.
+    """)
 
     def apply_bayesian_inference(X, y):
         model = BayesianRidge()
@@ -576,6 +606,13 @@ elif section == "Bayesian Inference":
 elif section == "Survival Analysis":
     st.header("Survival Analysis")
 
+    st.markdown("""
+    **Overview:**  
+    Survival analysis is used to model the time until an event occurs.  
+    In this section, we perform Kaplan-Meier analysis to estimate the survival probability over time.  
+    The survival curve visualizes the probability of remaining event-free over the observed time period.
+    """)
+
     seizure_times = np.random.exponential(scale=100, size=len(y))
     event_occurred = (y == 2).astype(int)
 
@@ -603,6 +640,13 @@ elif section == "Survival Analysis":
 # ---- Model Interpretability with SHAP ----
 elif section == "SHAP Model Interpretability":
     st.header("Model Interpretability with SHAP")
+
+    st.markdown("""
+    **Overview:**  
+    SHAP (SHapley Additive exPlanations) is a game-theoretic approach to explain the output of machine learning models.  
+    In this section, we use SHAP to understand the contributions of each feature in the EEG data towards the model’s predictions.  
+    We visualize the SHAP force plot, global feature importance, and detailed waterfall plots to gain insights into the model’s decision-making process.
+    """)
 
     rf_model = RandomForestClassifier()
     rf_model.fit(X, y)
@@ -633,6 +677,12 @@ elif section == "SHAP Model Interpretability":
 # ---- Statistical Hypothesis Testing ----
 elif section == "Statistical Hypothesis Testing":
     st.header("Statistical Hypothesis Testing")
+
+    st.markdown("""
+    **Overview:**  
+    Hypothesis testing helps us determine whether there is enough evidence to reject a null hypothesis.  
+    In this section, we perform an ANOVA test to compare the means of the three classes (preictal, interictal, ictal) and determine if they are significantly different.
+    """)
 
     def perform_anova_test(X, y):
         preictal = X[y == 0]
