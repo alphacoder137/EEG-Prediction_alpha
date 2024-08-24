@@ -1,3 +1,4 @@
+"""
 from scipy.stats import f_oneway
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -33,3 +34,5 @@ def perform_anova_test(X, y):
         st.write("The p-value is below 0.05, indicating that the means of the three classes are significantly different.")
     else:
         st.write("The p-value is above 0.05, indicating that the means of the three classes are not significantly different.")
+
+"""
