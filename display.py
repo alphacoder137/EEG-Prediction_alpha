@@ -329,60 +329,31 @@ elif section == "SHAP Model Interpretability":
     We visualize the SHAP force plot, global feature importance, and detailed waterfall plots to gain insights into the model’s decision-making process.
     """)
 
-    # Fit the model and generate SHAP values
-    rf_model = RandomForestClassifier()
-    rf_model.fit(X, y)
-    explainer = shap.TreeExplainer(rf_model)
-    shap_values = explainer.shap_values(X)
-
-    # Slider to select sample index
-    sample_index = st.slider("Select Sample Index for SHAP Analysis", 0, len(X) - 1, 13)
-
-    # Define SHAP visualization functions
     def st_shap(plot, height=None):
-        shap_html = f"<head>{shap.getjs()}</head><body>{plot.html()}</body>"
-        st.components.v1.html(shap_html, height=height)
+    shap_html = f"<head>{shap.getjs()}</head><body>{plot.html()}</body>"
+    st.components.v1.html(shap_html, height=height)
 
-    def visualize_shap_values(model, X, sample_index):
-        explainer = shap.TreeExplainer(model)
-        shap_values = explainer.shap_values(X)
-        
-        # Ensure that you're selecting the SHAP values and features correctly for a multi-class model
-        class_index = 1  # Select the class index you're interested in (adjust as needed)
+def visualize_shap_values(model, X, sample_index):
+    explainer = shap.TreeExplainer(model)
+    shap_values = explainer.shap_values(X)
+    
+    # Force Plot
+    st.write("### SHAP Force Plot for the Selected Sample")
+    st_shap(shap.force_plot(explainer.expected_value[1], shap_values[1][sample_index], X[sample_index]))
 
-        # Force Plot
-        st.write("### SHAP Force Plot for the Selected Sample")
-        st_shap(
-            shap.force_plot(
-                explainer.expected_value[class_index], 
-                shap_values[class_index][sample_index], 
-                X[sample_index]  # Indexing directly without using iloc
-            )
-        )
+    # Global Feature Importance
+    st.write("### Global Feature Importance")
+    fig, ax = plt.subplots(facecolor='#1f1f2e')
+    ax.set_facecolor('#1f1f2e')
+    shap.summary_plot(shap_values[1], X, plot_type="bar")
+    st.pyplot(fig)
 
-        # Global Feature Importance
-        st.write("### Global Feature Importance")
-        fig, ax = plt.subplots(facecolor='#1f1f2e')
-        ax.set_facecolor('#1f1f2e')
-        shap.summary_plot(shap_values[class_index], X, plot_type="bar", show=False)
-        st.pyplot(fig)
-
-        # Detailed SHAP Waterfall Plot
-        st.write("### SHAP Waterfall Plot for Detailed Explanation")
-        fig, ax = plt.subplots(facecolor='#1f1f2e')
-        ax.set_facecolor('#1f1f2e')
-        shap.waterfall_plot(
-            shap.Explanation(
-                values=shap_values[class_index][sample_index], 
-                base_values=explainer.expected_value[class_index], 
-                data=X[sample_index],  # Indexing directly without using iloc
-                feature_names=[f'Feature {i}' for i in range(X.shape[1])]
-            )
-        )
-        st.pyplot(fig)
-
-    # Call the function to visualize SHAP values
-    visualize_shap_values(rf_model, X, sample_index)
+    # Detailed SHAP Waterfall Plot
+    st.write("### SHAP Waterfall Plot for Detailed Explanation")
+    fig, ax = plt.subplots(facecolor='#1f1f2e')
+    ax.set_facecolor('#1f1f2e')
+    shap.waterfall_plot(shap.Explanation(values=shap_values[1][sample_index], base_values=explainer.expected_value[1], data=X[sample_index], feature_names=[f'Feature {i}' for i in range(X.shape[1])]))
+    st.pyplot(fig)
 
     # Conclusive remark
     st.markdown("""
@@ -390,8 +361,6 @@ elif section == "SHAP Model Interpretability":
     SHAP provides interpretable explanations of model predictions, helping us understand which features contribute most to the classification decision.  
     This is essential for building trust in AI models used in medical applications, where understanding decision factors is critical.
     """)
-
-
 
 # ---- Statistical Hypothesis Testing ----
 elif section == "Statistical Hypothesis Testing":
