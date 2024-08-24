@@ -369,19 +369,11 @@ elif section == "Statistical Hypothesis Testing":
     st.markdown("""
     **Overview:**  
     Hypothesis testing helps us determine whether there is enough evidence to reject a null hypothesis.  
-    In this section, we perform an ANOVA test to compare the means of the three classes (preictal, interictal, ictal) and determine if they are significantly different.
+    In this section, we perform an ANOVA test to compare the means of the three classes (preictal, interictal, ictal) and determine if they are significantly different.  
+    We also visualize the distribution of values in each class, along with the F-statistic and p-value.
     """)
 
-    def perform_anova_test(X, y):
-        preictal = X[y == 0]
-        interictal = X[y == 1]
-        ictal = X[y == 2]
-        
-        # ANOVA Test
-        f_stat, p_value = f_oneway(preictal, interictal, ictal)
-        st.write(f"ANOVA F-Statistic: {f_stat}")
-        st.write(f"p-value: {p_value}")
-
+    sample_index = st.slider("Select Sample Index for Hypothesis Testing", 0, 29, 0)
     if st.button('Perform ANOVA'):
         perform_anova_test(X, y)
 
@@ -390,5 +382,7 @@ elif section == "Statistical Hypothesis Testing":
         **Conclusion:**  
         The ANOVA test compares the means of the preictal, interictal, and ictal classes to assess if there are statistically significant differences.  
         This helps validate whether the classes are distinct, which is important for ensuring the effectiveness of classification models.
+        The visualization above gives a clearer picture of the class differences and how they relate to the ANOVA results.
         """)
+
 
