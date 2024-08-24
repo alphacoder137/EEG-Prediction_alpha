@@ -20,7 +20,6 @@ shap_values = explainer.shap_values(X_sample)
 
 if st.button('Visualize SHAP Values'):
     st.write("### SHAP Force Plot for Sample 13")
-    shap.initjs()
     sample_index = 13  # Replace with a slider if you want to dynamically select
     st_shap(shap.force_plot(explainer.expected_value[1], shap_values[1][sample_index], X_sample[sample_index]))
 
