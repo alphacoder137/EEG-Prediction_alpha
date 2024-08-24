@@ -1,3 +1,4 @@
+"""
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -351,3 +352,212 @@ def perform_anova_test(X, y):
 
 if st.button('Perform ANOVA'):
     perform_anova_test(X, y)
+
+"""
+
+import streamlit as st
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import shap
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import BayesianRidge
+from statsmodels.tsa.stattools import adfuller, kpss
+from scipy.signal import butter, filtfilt, welch
+from lifelines import KaplanMeierFitter
+from scipy.stats import f_oneway
+
+# Sidebar navigation
+st.sidebar.title("Navigation")
+section = st.sidebar.selectbox("Choose a section", [
+    "EDA", 
+    "Signal Processing", 
+    "Bayesian Inference", 
+    "Survival Analysis", 
+    "SHAP Model Interpretability", 
+    "Statistical Hypothesis Testing"
+])
+
+# Data (Assume X, y are already loaded and preprocessed)
+# Placeholder example data for illustration purposes:
+X = np.random.rand(30, 1000)  # Replace this with your EEG data
+y = np.random.randint(0, 3, 30)  # Replace this with your labels
+
+# Function to display SHAP plots in Streamlit
+def st_shap(plot, height=None):
+    shap_html = f"<head>{shap.getjs()}</head><body>{plot.html()}</body>"
+    st.components.v1.html(shap_html, height=height)
+
+# ---- Exploratory Data Analysis (EDA) ----
+if section == "EDA":
+    st.header("Exploratory Data Analysis (EDA)")
+
+    def stationarity_tests(data):
+        adf_result = adfuller(data)
+        st.write("ADF Statistic:", adf_result[0])
+        st.write("p-value:", adf_result[1])
+        st.write("Critical Values:", adf_result[4])
+
+        kpss_result = kpss(data, regression='c')
+        st.write("\nKPSS Statistic:", kpss_result[0])
+        st.write("p-value:", kpss_result[1])
+        st.write("Critical Values:", kpss_result[3])
+
+    def frequency_domain_analysis(data, fs=256):
+        freqs, psd = welch(data, fs=fs)
+        plt.figure(figsize=(10, 6))
+        plt.semilogy(freqs, psd, color='blue')
+        plt.title('Power Spectral Density')
+        plt.xlabel('Frequency (Hz)')
+        plt.ylabel('Power Spectral Density (V^2/Hz)')
+        st.pyplot(plt)
+
+    def extract_statistical_features(data):
+        mean_val = np.mean(data)
+        variance_val = np.var(data)
+        st.write(f"Mean: {mean_val}")
+        st.write(f"Variance: {variance_val}")
+
+    sample_index = st.slider('Select Test Sample Index for EDA', 0, 29, 0)
+    if st.button('Perform EDA'):
+        st.subheader("Time-Series Analysis and Stationarity Tests")
+        stationarity_tests(X[sample_index])
+
+        st.subheader("Frequency Domain Analysis")
+        frequency_domain_analysis(X[sample_index])
+
+        st.subheader("Statistical Feature Extraction")
+        extract_statistical_features(X[sample_index])
+
+# ---- Signal Processing and Noise Reduction ----
+elif section == "Signal Processing":
+    st.header("Signal Processing and Noise Reduction")
+
+    def bandpass_filter(data, lowcut=0.5, highcut=50.0, fs=256, order=5):
+        nyquist = 0.5 * fs
+        low = lowcut / nyquist
+        high = highcut / nyquist
+        b, a = butter(order, [low, high], btype='band')
+        filtered_data = filtfilt(b, a, data)
+        return filtered_data
+
+    sample_index = st.slider('Select Test Sample Index for Signal Processing', 0, 29, 0)
+    if st.button('Apply Band-Pass Filter'):
+        filtered_data = bandpass_filter(X[sample_index])
+        st.write("Filtered Data (First 10 Points):", filtered_data[:10])
+
+        fig, ax = plt.subplots(facecolor='#0D1117')
+        ax.set_facecolor('#0D1117')
+        ax.plot(filtered_data, color='cyan')
+        ax.set_title(f"Filtered EEG Recording: {sample_index}", fontdict={'fontname': 'serif', 'fontsize': 14, 'color': 'white'})
+        ax.set_xlabel("Datapoint (0-1024)", fontdict={'fontname': 'serif', 'fontsize': 14, 'color': 'white'})
+        ax.set_ylabel("Voltage", fontdict={'fontname': 'serif', 'fontsize': 14, 'color': 'white'})
+        ax.tick_params(colors='white')
+        st.pyplot(fig)
+
+# ---- Bayesian Inference and Probabilistic Models ----
+elif section == "Bayesian Inference":
+    st.header("Bayesian Inference and Probabilistic Models")
+
+    def apply_bayesian_inference(X, y):
+        model = BayesianRidge()
+        model.fit(X, y)
+        return model
+
+    sample_index = st.slider("Select Sample Index for Bayesian Inference", 0, 29, 0)
+    if st.button('Apply Bayesian Inference'):
+        bayesian_model = apply_bayesian_inference(X, y)
+        prediction = bayesian_model.predict([X[sample_index]])
+        st.write(f"Bayesian Prediction for Sample {sample_index}: {prediction[0]}")
+        
+        # Display posterior distribution
+        st.write(f"**Prediction Mean:** {prediction[0]:.2f}")
+        st.write(f"**Prediction Uncertainty (±1 Std):** {bayesian_model.alpha_:.2f}")
+
+        # Visualize posterior distribution
+        fig, ax = plt.subplots(facecolor='#1f1f2e')
+        ax.set_facecolor('#1f1f2e')
+        x_vals = np.linspace(prediction[0] - 3 * bayesian_model.alpha_, prediction[0] + 3 * bayesian_model.alpha_, 100)
+        y_vals = (1 / (bayesian_model.alpha_ * np.sqrt(2 * np.pi))) * np.exp(-0.5 * ((x_vals - prediction[0]) / bayesian_model.alpha_)**2)
+        ax.plot(x_vals, y_vals, color='cyan')
+        ax.fill_between(x_vals, y_vals, alpha=0.2, color='cyan')
+        ax.set_title("Posterior Distribution", color='white')
+        ax.set_xlabel("Predicted Value", color='white')
+        ax.set_ylabel("Density", color='white')
+        ax.tick_params(colors='white')
+        st.pyplot(fig)
+
+# ---- Survival Analysis ----
+elif section == "Survival Analysis":
+    st.header("Survival Analysis")
+
+    seizure_times = np.random.exponential(scale=100, size=len(y))
+    event_occurred = (y == 2).astype(int)
+
+    def perform_kaplan_meier_analysis(seizure_times, event_occurred):
+        kmf = KaplanMeierFitter()
+        kmf.fit(seizure_times, event_occurred)
+        fig, ax = plt.subplots(facecolor='#1f1f2e')
+        ax.set_facecolor('#1f1f2e')
+        kmf.plot_survival_function(ax=ax, color='skyblue', ci_show=True, alpha=0.8)
+        
+        # Median survival time
+        median_survival_time = kmf.median_survival_time_
+        ax.axhline(y=0.5, color='red', linestyle='--', label=f"Median Survival Time: {median_survival_time:.2f}")
+        
+        ax.set_title("Kaplan-Meier Estimate", color='white')
+        ax.set_xlabel("Timeline", color='white')
+        ax.set_ylabel("Survival Probability", color='white')
+        ax.tick_params(colors='white')
+        ax.legend(loc='best', fontsize='medium')
+        st.pyplot(fig)
+
+    if st.button('Perform Kaplan-Meier Analysis'):
+        perform_kaplan_meier_analysis(seizure_times, event_occurred)
+
+# ---- Model Interpretability with SHAP ----
+elif section == "SHAP Model Interpretability":
+    st.header("Model Interpretability with SHAP")
+
+    rf_model = RandomForestClassifier()
+    rf_model.fit(X, y)
+    explainer = shap.TreeExplainer(rf_model)
+    shap_values = explainer.shap_values(X)
+
+    sample_index = st.slider("Select Sample Index for SHAP Analysis", 0, 29, 13)
+
+    if st.button('Visualize SHAP Values'):
+        # Force Plot
+        st.write("### SHAP Force Plot for the Selected Sample")
+        st_shap(shap.force_plot(explainer.expected_value[1], shap_values[1][sample_index], X[sample_index]))
+
+        # Global Feature Importance
+        st.write("### Global Feature Importance")
+        fig, ax = plt.subplots(facecolor='#1f1f2e')
+        ax.set_facecolor('#1f1f2e')
+        shap.summary_plot(shap_values[1], X, plot_type="bar", show=False)
+        st.pyplot(fig)
+
+        # Detailed SHAP Waterfall Plot
+        st.write("### SHAP Waterfall Plot for Detailed Explanation")
+        fig, ax = plt.subplots(facecolor='#1f1f2e')
+        ax.set_facecolor('#1f1f2e')
+        shap.waterfall_plot(shap.Explanation(values=shap_values[1][sample_index], base_values=explainer.expected_value[1], data=X[sample_index], feature_names=[f'Feature {i}' for i in range(X.shape[1])]))
+        st.pyplot(fig)
+
+# ---- Statistical Hypothesis Testing ----
+elif section == "Statistical Hypothesis Testing":
+    st.header("Statistical Hypothesis Testing")
+
+    def perform_anova_test(X, y):
+        preictal = X[y == 0]
+        interictal = X[y == 1]
+        ictal = X[y == 2]
+        
+        # ANOVA Test
+        f_stat, p_value = f_oneway(preictal, interictal, ictal)
+        st.write(f"ANOVA F-Statistic: {f_stat}")
+        st.write(f"p-value: {p_value}")
+
+    if st.button('Perform ANOVA'):
+        perform_anova_test(X, y)
