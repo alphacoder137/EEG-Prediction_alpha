@@ -333,7 +333,7 @@ elif section == "SHAP Model Interpretability":
     shap_html = f"<head>{shap.getjs()}</head><body>{plot.html()}</body>"
     st.components.v1.html(shap_html, height=height)
 
-def visualize_shap_values(model, X, sample_index):
+    def visualize_shap_values(model, X, sample_index):
     explainer = shap.TreeExplainer(model)
     shap_values = explainer.shap_values(X)
     
