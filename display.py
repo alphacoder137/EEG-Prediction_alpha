@@ -369,7 +369,7 @@ elif section == "Statistical Hypothesis Testing":
     st.markdown("""
     **Overview:**  
     Hypothesis testing helps us determine whether there is enough evidence to reject a null hypothesis.  
-    In this section, we perform an ANOVA test to compare the means of the three classes (preictal, interictal, ictal) and determine if they are significantly different.  
+    In this section, we perform an ANOVA (Analysis of Variance) test to compare the means of the three classes (preictal, interictal, ictal) and determine if they are significantly different.  
     We also visualize the distribution of values in each class, along with the F-statistic and p-value.
     """)
 
