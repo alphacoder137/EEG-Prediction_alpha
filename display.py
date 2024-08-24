@@ -356,7 +356,7 @@ elif section == "SHAP Model Interpretability":
             shap.force_plot(
                 explainer.expected_value[class_index], 
                 shap_values[class_index][sample_index], 
-                X.iloc[sample_index]  # Ensure this is correctly passed as a row (for example, using .iloc)
+                X[sample_index]  # Indexing directly without using iloc
             )
         )
 
@@ -375,8 +375,8 @@ elif section == "SHAP Model Interpretability":
             shap.Explanation(
                 values=shap_values[class_index][sample_index], 
                 base_values=explainer.expected_value[class_index], 
-                data=X.iloc[sample_index], 
-                feature_names=X.columns
+                data=X[sample_index],  # Indexing directly without using iloc
+                feature_names=[f'Feature {i}' for i in range(X.shape[1])]
             )
         )
         st.pyplot(fig)
@@ -390,6 +390,8 @@ elif section == "SHAP Model Interpretability":
     SHAP provides interpretable explanations of model predictions, helping us understand which features contribute most to the classification decision.  
     This is essential for building trust in AI models used in medical applications, where understanding decision factors is critical.
     """)
+
+
 
 # ---- Statistical Hypothesis Testing ----
 elif section == "Statistical Hypothesis Testing":
