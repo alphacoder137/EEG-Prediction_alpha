@@ -303,6 +303,11 @@ def perform_kaplan_meier_analysis(seizure_times, event_occurred):
 if st.button('Perform Kaplan-Meier Analysis'):
     perform_kaplan_meier_analysis(seizure_times, event_occurred)
 
+# Function to display SHAP plots in Streamlit
+def st_shap(plot, height=None):
+    shap_html = f"<head>{shap.getjs()}</head><body>{plot.html()}</body>"
+    st.components.v1.html(shap_html, height=height)
+
 # ---- Model Interpretability with SHAP ----
 st.subheader("Model Interpretability with SHAP")
 rf_model = RandomForestClassifier()
@@ -315,7 +320,6 @@ if st.button('Visualize SHAP Values'):
 
     # Force Plot
     st.write("### SHAP Force Plot for the Selected Sample")
-    # Note: matplotlib=True is used here to ensure compatibility with Streamlit
     st_shap(shap.force_plot(explainer.expected_value[1], shap_values[1][sample_index], X[sample_index], matplotlib=True))
 
     # Global Feature Importance
@@ -331,12 +335,6 @@ if st.button('Visualize SHAP Values'):
     ax.set_facecolor('#1f1f2e')
     shap.waterfall_plot(shap.Explanation(values=shap_values[1][sample_index], base_values=explainer.expected_value[1], data=X[sample_index], feature_names=[f'Feature {i}' for i in range(X.shape[1])]))
     st.pyplot(fig)
-
-# Function to display SHAP plots in Streamlit
-def st_shap(plot, height=None):
-    # Render the SHAP plot using HTML in Streamlit
-    shap_html = f"<head>{shap.getjs()}</head><body>{plot.html()}</body>"
-    st.components.v1.html(shap_html, height=height)
 
 # ---- Statistical Hypothesis Testing Section ----
 st.subheader("Statistical Hypothesis Testing")
