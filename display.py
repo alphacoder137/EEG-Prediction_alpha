@@ -360,16 +360,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import shap
+import pandas as pd
+import pickle
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import BayesianRidge
 from statsmodels.tsa.stattools import adfuller, kpss
 from scipy.signal import butter, filtfilt, welch
 from lifelines import KaplanMeierFitter
 from scipy.stats import f_oneway
+from sklearn.metrics import accuracy_score
 
 # Sidebar navigation
 st.sidebar.title("Navigation")
 section = st.sidebar.selectbox("Choose a section", [
+    "EEG Fusion Prediction",  # Original section for EEG plot and classification
     "EDA", 
     "Signal Processing", 
     "Bayesian Inference", 
@@ -378,18 +382,99 @@ section = st.sidebar.selectbox("Choose a section", [
     "Statistical Hypothesis Testing"
 ])
 
-# Data (Assume X, y are already loaded and preprocessed)
+# Assume X, y are already loaded and preprocessed
 # Placeholder example data for illustration purposes:
 X = np.random.rand(30, 1000)  # Replace this with your EEG data
 y = np.random.randint(0, 3, 30)  # Replace this with your labels
 
-# Function to display SHAP plots in Streamlit
-def st_shap(plot, height=None):
-    shap_html = f"<head>{shap.getjs()}</head><body>{plot.html()}</body>"
-    st.components.v1.html(shap_html, height=height)
+# Load y_test (actual labels for evaluation)
+with open('y_test.pkl', 'rb') as f:
+    y_test = pickle.load(f)
+
+# Load results from individual models (for fusion)
+def load_results(file_path):
+    return pd.read_pickle(file_path)
+
+models = ['rf', 'ada']  # Add your other models if needed
+results_dfs = {model: load_results(f"{model}_pred.pkl") for model in models}
+
+# Function for EEG fusion prediction
+def calculate_and_display_fusion_prediction(index, results_dfs):
+    class_labels = {0: 'Preictal', 1: 'Interictal', 2: 'Ictal'}
+    cumulative_probabilities = [0] * len(class_labels)
+    
+    for df in results_dfs.values():
+        probabilities = df.iloc[index]['Probabilities']
+        cumulative_probabilities = [sum(x) for x in zip(cumulative_probabilities, probabilities)]
+    
+    averaged_probabilities = [prob / len(results_dfs) for prob in cumulative_probabilities]
+    final_predicted_class_index = averaged_probabilities.index(max(averaged_probabilities))
+    return final_predicted_class_index, averaged_probabilities
+
+def display_fusion_prediction(index, results_dfs):
+    predicted_class_index, averaged_probabilities = calculate_and_display_fusion_prediction(index, results_dfs)
+    
+    class_labels = {0: 'Preictal', 1: 'Interictal', 2: 'Ictal'}
+    correct_label = class_labels[y_test[index]]
+    predicted_class = class_labels[predicted_class_index]
+    averaged_probabilities_percent = [prob * 100 for prob in averaged_probabilities]
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown(f"<div style='font-size: 20px; font-family: serif; color: white;'>Correct Label: <strong>{correct_label}</strong></div>", unsafe_allow_html=True)
+    with col2:
+        st.markdown(f"<div style='font-size: 20px; font-family: serif; color: white;'>Fusion Prediction: <strong>{predicted_class}</strong></div>", unsafe_allow_html=True)
+    with col3:
+        fusion_predictions = [calculate_and_display_fusion_prediction(i, results_dfs)[0] for i in range(30)]
+        accuracy = accuracy_score(y_test[:30], fusion_predictions)
+        st.markdown(f"<div style='font-size: 20px; font-family: serif; color: white;'>Fusion Accuracy: {accuracy * 100:.2f}%</div>", unsafe_allow_html=True)
+    
+    st.title("")  # Add a blank title for vertical space
+    
+    prob_df = pd.DataFrame({
+        'Class': list(class_labels.values()),
+        'Probability (%)': averaged_probabilities_percent
+    })
+    
+    fig, ax = plt.subplots(facecolor='#0D1117')
+    ax.set_facecolor('#0D1117')
+    sns.barplot(x='Probability (%)', y='Class', data=prob_df, palette='coolwarm', ax=ax)
+    ax.set_ylabel('')
+    ax.set_title('Fusion Prediction Probabilities', color='white', fontname='serif')
+    ax.set_xlabel('Probability (%)', color='white', fontname='serif')
+    ax.set_yticklabels(prob_df['Class'], color='white', fontname='serif')
+    ax.tick_params(colors='white')
+    ax.spines['top'].set_color('white')
+    ax.spines['bottom'].set_color('white')
+    ax.spines['left'].set_color('white')
+    ax.spines['right'].set_color('white')
+    st.pyplot(fig)
+
+# ---- EEG Fusion Prediction (Original Section) ----
+if section == "EEG Fusion Prediction":
+    st.header("EEG Fusion Prediction and Visualization")
+    
+    if 'X' in globals() and 'y' in globals():
+        sample_index = st.slider('Select Test Sample Index', 0, 29, 0)
+        
+        if st.button('Show EEG Sample & Fusion Prediction'):
+            fig, ax = plt.subplots(facecolor='#0D1117')
+            ax.set_facecolor('#0D1117')
+            ax.plot(X[sample_index], color='yellow')
+            ax.set_title(f"EEG Recording: {sample_index}", fontdict={'fontname': 'serif', 'fontsize': 14, 'color': 'white'})
+            ax.set_xlabel("Datapoint (0-1024)", fontdict={'fontname': 'serif', 'fontsize': 14, 'color': 'white'})
+            ax.set_ylabel("Voltage", fontdict={'fontname': 'serif', 'fontsize': 14, 'color': 'white'})
+            ax.tick_params(colors='white')
+            st.pyplot(fig)
+            
+            st.title("")  # Add a blank title for vertical space
+
+            display_fusion_prediction(sample_index, results_dfs)
+    else:
+        st.write("Please provide the correct path to the EEG dataset.")
 
 # ---- Exploratory Data Analysis (EDA) ----
-if section == "EDA":
+elif section == "EDA":
     st.header("Exploratory Data Analysis (EDA)")
 
     def stationarity_tests(data):
@@ -561,3 +646,4 @@ elif section == "Statistical Hypothesis Testing":
 
     if st.button('Perform ANOVA'):
         perform_anova_test(X, y)
+
