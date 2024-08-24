@@ -9,11 +9,11 @@ import pickle
 from sklearn.metrics import accuracy_score
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import BayesianRidge
-from sklearn.model_selection import cross_val_score, StratifiedKFold, permutation_test_score
+from sklearn.model_selection import cross_val_score, StratifiedKFold
 from statsmodels.tsa.stattools import adfuller, kpss
 from scipy.signal import butter, filtfilt, welch
 import shap
-from lifelines import KaplanMeierFitter, CoxPHFitter
+from lifelines import KaplanMeierFitter
 import requests
 import zipfile
 import logging
@@ -243,6 +243,27 @@ if st.button('Apply Bayesian Inference'):
     bayesian_model = apply_bayesian_inference(X, y)
     prediction = bayesian_model.predict([X[sample_index]])
     st.write(f"Bayesian Prediction for Sample {sample_index}: {prediction[0]}")
+    
+    # Display posterior distribution
+    st.write(f"**Prediction Mean:** {prediction[0]:.2f}")
+    st.write(f"**Prediction Uncertainty (±1 Std):** {bayesian_model.alpha_:.2f}")
+
+    # Visualize posterior distribution
+    fig, ax = plt.subplots(facecolor='#1f1f2e')
+    ax.set_facecolor('#1f1f2e')
+    x_vals = np.linspace(prediction[0] - 3 * bayesian_model.alpha_, prediction[0] + 3 * bayesian_model.alpha_, 100)
+    y_vals = (1 / (bayesian_model.alpha_ * np.sqrt(2 * np.pi))) * np.exp(-0.5 * ((x_vals - prediction[0]) / bayesian_model.alpha_)**2)
+    ax.plot(x_vals, y_vals, color='cyan')
+    ax.fill_between(x_vals, y_vals, alpha=0.2, color='cyan')
+    ax.set_title("Posterior Distribution", color='white')
+    ax.set_xlabel("Predicted Value", color='white')
+    ax.set_ylabel("Density", color='white')
+    ax.tick_params(colors='white')
+    ax.spines['top'].set_color('white')
+    ax.spines['bottom'].set_color('white')
+    ax.spines['left'].set_color('white')
+    ax.spines['right'].set_color('white')
+    st.pyplot(fig)
 
 # ---- Survival Analysis Section ----
 st.subheader("Survival Analysis")
@@ -252,8 +273,29 @@ event_occurred = (y == 2).astype(int)
 def perform_kaplan_meier_analysis(seizure_times, event_occurred):
     kmf = KaplanMeierFitter()
     kmf.fit(seizure_times, event_occurred)
-    fig, ax = plt.subplots()
-    kmf.plot_survival_function(ax=ax)
+    fig, ax = plt.subplots(facecolor='#1f1f2e')
+    ax.set_facecolor('#1f1f2e')
+    kmf.plot_survival_function(ax=ax, color='skyblue', ci_show=True, alpha=0.8)
+    
+    # Median survival time
+    median_survival_time = kmf.median_survival_time_
+    ax.axhline(y=0.5, color='red', linestyle='--', label=f"Median Survival Time: {median_survival_time:.2f}")
+    
+    ax.set_title("Kaplan-Meier Estimate", color='white')
+    ax.set_xlabel("Timeline", color='white')
+    ax.set_ylabel("Survival Probability", color='white')
+    ax.tick_params(colors='white')
+    ax.legend(loc='best', fontsize='medium')
+    
+    # Highlight the median survival time
+    ax.annotate(f'Median: {median_survival_time:.2f}', xy=(median_survival_time, 0.5), xycoords='data',
+                xytext=(median_survival_time + 50, 0.6), textcoords='data',
+                arrowprops=dict(facecolor='white', shrink=0.05), color='white', fontsize=10)
+    
+    ax.spines['top'].set_color('white')
+    ax.spines['bottom'].set_color('white')
+    ax.spines['left'].set_color('white')
+    ax.spines['right'].set_color('white')
     st.pyplot(fig)
 
 if st.button('Perform Kaplan-Meier Analysis'):
@@ -268,10 +310,27 @@ shap_values = explainer.shap_values(X)
 
 if st.button('Visualize SHAP Values'):
     shap.initjs()
-    shap.force_plot(explainer.expected_value[1], shap_values[1][sample_index], X[sample_index], matplotlib=True)
-    st.pyplot()
+    sample_index = st.slider("Select Sample Index for SHAP Analysis", 0, 29, 13)
+    st_shap(shap.force_plot(explainer.expected_value[1], shap_values[1][sample_index], X[sample_index]))
 
-# ---- Cross-Validation and Permutation Testing ----
+    st.write("### Global Feature Importance")
+    fig, ax = plt.subplots(facecolor='#1f1f2e')
+    ax.set_facecolor('#1f1f2e')
+    shap.summary_plot(shap_values[1], X, plot_type="bar", plot_size=(10, 6))
+    st.pyplot(fig)
+
+    st.write("### SHAP Waterfall Plot for Detailed Explanation")
+    fig, ax = plt.subplots(facecolor='#1f1f2e')
+    ax.set_facecolor('#1f1f2e')
+    shap.waterfall_plot(shap.Explanation(values=shap_values[1][sample_index], base_values=explainer.expected_value[1], data=X[sample_index], feature_names=[f'Feature {i}' for i in range(X.shape[1])]))
+    st.pyplot(fig)
+
+# Function to display SHAP plots in Streamlit
+def st_shap(plot, height=None):
+    shap_html = f"<head>{shap.getjs()}</head><body>{plot.html()}</body>"
+    st.components.v1.html(shap_html, height=height)
+
+# ---- Cross-Validation and Model Evaluation ----
 st.subheader("Model Evaluation and Statistical Validation")
 def perform_cross_validation(X, y):
     cv = StratifiedKFold(n_splits=5)
@@ -280,14 +339,5 @@ def perform_cross_validation(X, y):
     st.write(f"Cross-Validation Scores: {cv_scores}")
     st.write(f"Mean CV Score: {np.mean(cv_scores)}")
 
-def perform_permutation_test(X, y):
-    model = RandomForestClassifier()
-    score, permutation_scores, pvalue = permutation_test_score(model, X, y, cv=5, n_permutations=100)
-    st.write(f"Permutation Test Score: {score}")
-    st.write(f"Permutation Test p-value: {pvalue}")
-
 if st.button('Perform Cross-Validation'):
     perform_cross_validation(X, y)
-
-if st.button('Perform Permutation Test'):
-    perform_permutation_test(X, y)
