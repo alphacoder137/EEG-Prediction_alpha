@@ -18,6 +18,7 @@ from scipy.stats import f_oneway
 import requests
 import zipfile
 import logging
+from interpretability import visualize_shap_values
 
 # Initialize the logger
 logging.basicConfig(level=logging.INFO)
@@ -314,13 +315,14 @@ if st.button('Visualize SHAP Values'):
 
     # Force Plot
     st.write("### SHAP Force Plot for the Selected Sample")
-    st_shap(shap.force_plot(explainer.expected_value[1], shap_values[1][sample_index], X[sample_index]))
+    # Note: matplotlib=True is used here to ensure compatibility with Streamlit
+    st_shap(shap.force_plot(explainer.expected_value[1], shap_values[1][sample_index], X[sample_index], matplotlib=True))
 
     # Global Feature Importance
     st.write("### Global Feature Importance")
     fig, ax = plt.subplots(facecolor='#1f1f2e')
     ax.set_facecolor('#1f1f2e')
-    shap.summary_plot(shap_values[1], X, plot_type="bar")
+    shap.summary_plot(shap_values[1], X, plot_type="bar", show=False)
     st.pyplot(fig)
 
     # Detailed SHAP Waterfall Plot
@@ -332,6 +334,7 @@ if st.button('Visualize SHAP Values'):
 
 # Function to display SHAP plots in Streamlit
 def st_shap(plot, height=None):
+    # Render the SHAP plot using HTML in Streamlit
     shap_html = f"<head>{shap.getjs()}</head><body>{plot.html()}</body>"
     st.components.v1.html(shap_html, height=height)
 
