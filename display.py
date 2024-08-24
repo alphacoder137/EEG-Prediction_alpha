@@ -608,9 +608,9 @@ elif section == "Survival Analysis":
 
     st.markdown("""
     **Overview:**  
-    Survival analysis is used to model the time until an event occurs.  
-    In this section, we perform Kaplan-Meier analysis to estimate the survival probability over time.  
-    The survival curve visualizes the probability of remaining event-free over the observed time period.
+    Survival analysis is important when studying the time until a particular event occurs, such as the onset of a seizure. In the context of EEG data analysis, we can model the time between seizure events to gain insights into seizure patterns. This analysis is particularly valuable in understanding how long a patient remains seizure-free and predicting the likelihood of future seizures based on historical data.
+
+    In this section, we perform Kaplan-Meier analysis to estimate the probability of remaining seizure-free over time. The survival curve visualizes this probability, allowing us to better understand the temporal patterns associated with seizure occurrences.
     """)
 
     seizure_times = np.random.exponential(scale=100, size=len(y))
