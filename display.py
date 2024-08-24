@@ -309,16 +309,20 @@ explainer = shap.TreeExplainer(rf_model)
 shap_values = explainer.shap_values(X)
 
 if st.button('Visualize SHAP Values'):
-    shap.initjs()
     sample_index = st.slider("Select Sample Index for SHAP Analysis", 0, 29, 13)
+
+    # Force Plot
+    st.write("### SHAP Force Plot for the Selected Sample")
     st_shap(shap.force_plot(explainer.expected_value[1], shap_values[1][sample_index], X[sample_index]))
 
+    # Global Feature Importance
     st.write("### Global Feature Importance")
     fig, ax = plt.subplots(facecolor='#1f1f2e')
     ax.set_facecolor('#1f1f2e')
-    shap.summary_plot(shap_values[1], X, plot_type="bar", plot_size=(10, 6))
+    shap.summary_plot(shap_values[1], X, plot_type="bar")
     st.pyplot(fig)
 
+    # Detailed SHAP Waterfall Plot
     st.write("### SHAP Waterfall Plot for Detailed Explanation")
     fig, ax = plt.subplots(facecolor='#1f1f2e')
     ax.set_facecolor('#1f1f2e')
