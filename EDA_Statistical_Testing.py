@@ -1,58 +1,64 @@
+import streamlit as st
+import matplotlib.pyplot as plt
+import seaborn as sns
 from statsmodels.tsa.stattools import adfuller, kpss
 from scipy.signal import welch
+import pandas as pd
 import numpy as np
-import seaborn as sns
-import matplotlib.pyplot as plt
-import streamlit as st
 
-# Function to perform stationarity tests
-def stationarity_tests(data):
-    # Augmented Dickey-Fuller Test
-    adf_result = adfuller(data)
-    st.write("ADF Statistic:", adf_result[0])
-    st.write("p-value:", adf_result[1])
-    st.write("Critical Values:")
-    for key, value in adf_result[4].items():
-        st.write(f'{key}: {value}')
+# Custom CSS for better styling
+st.markdown("""
+    <style>
+        .metric-box {
+            background-color: #1f1f2e;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .metric-box h4 {
+            color: #ffb400;
+            font-family: 'Lato', sans-serif;
+        }
+        .stPlot {
+            margin-top: -20px;
+        }
+    </style>
+""", unsafe_allow_html=True)
 
-    # KPSS Test
-    kpss_result = kpss(data, regression='c')
-    st.write("\nKPSS Statistic:", kpss_result[0])
-    st.write("p-value:", kpss_result[1])
-    st.write("Critical Values:")
-    for key, value in kpss_result[3].items():
-        st.write(f'{key}: {value}')
+# Display Stationarity Tests
+st.subheader("Time-Series Analysis and Stationarity Tests")
+col1, col2 = st.columns(2)
 
-# Function for frequency domain analysis
-def frequency_domain_analysis(data, fs=256):
-    freqs, psd = welch(data, fs=fs)
-    plt.figure(figsize=(10, 6))
-    plt.semilogy(freqs, psd, color='blue')
-    plt.title('Power Spectral Density')
-    plt.xlabel('Frequency (Hz)')
-    plt.ylabel('Power Spectral Density (V^2/Hz)')
-    st.pyplot(plt)
+with col1:
+    st.markdown("<div class='metric-box'><h4>ADF Test</h4>", unsafe_allow_html=True)
+    adf_result = adfuller(np.random.randn(100))  # Replace with your data
+    st.markdown(f"ADF Statistic: **{adf_result[0]:.2f}**")
+    st.markdown(f"p-value: **{adf_result[1]:.2e}**")
+    st.markdown(f"Critical Values: {adf_result[4]}</div>", unsafe_allow_html=True)
 
-# Function to extract statistical features
-def extract_statistical_features(data):
-    mean_val = np.mean(data)
-    variance_val = np.var(data)
-    skewness_val = scipy.stats.skew(data)
-    kurtosis_val = scipy.stats.kurtosis(data)
-    st.write(f"Mean: {mean_val}")
-    st.write(f"Variance: {variance_val}")
-    st.write(f"Skewness: {skewness_val}")
-    st.write(f"Kurtosis: {kurtosis_val}")
+with col2:
+    st.markdown("<div class='metric-box'><h4>KPSS Test</h4>", unsafe_allow_html=True)
+    kpss_result = kpss(np.random.randn(100), regression='c')  # Replace with your data
+    st.markdown(f"KPSS Statistic: **{kpss_result[0]:.2f}**")
+    st.markdown(f"p-value: **{kpss_result[1]:.2e}**")
+    st.markdown(f"Critical Values: {kpss_result[3]}</div>", unsafe_allow_html=True)
 
-# EDA Section in Streamlit
-st.header("Exploratory Data Analysis (EDA)")
-sample_index = st.slider('Select Test Sample Index for EDA', 0, 29, 0)
-if st.button('Perform EDA'):
-    st.subheader("Time-Series Analysis and Stationarity Tests")
-    stationarity_tests(X[sample_index])
+# Frequency Domain Analysis with Styled Plot
+st.subheader("Frequency Domain Analysis")
+freqs, psd = welch(np.random.randn(100), fs=256)  # Replace with your data
 
-    st.subheader("Frequency Domain Analysis")
-    frequency_domain_analysis(X[sample_index])
+fig, ax = plt.subplots(facecolor='#1f1f2e')
+ax.set_facecolor('#1f1f2e')
+sns.lineplot(x=freqs, y=psd, color='skyblue', ax=ax)
+ax.set_title("Power Spectral Density", color='white')
+ax.set_xlabel("Frequency (Hz)", color='white')
+ax.set_ylabel("Power Spectral Density", color='white')
+ax.tick_params(colors='white')
+st.pyplot(fig)
 
-    st.subheader("Statistical Feature Extraction")
-    extract_statistical_features(X[sample_index])
+# Statistical Feature Extraction
+st.subheader("Statistical Feature Extraction")
+mean_val = np.mean(np.random.randn(100))  # Replace with your data
+variance_val = np.var(np.random.randn(100))  # Replace with your data
+st.markdown(f"**Mean:** {mean_val:.2f}")
+st.markdown(f"**Variance:** {variance_val:.2f}")
