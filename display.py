@@ -14,6 +14,7 @@ from statsmodels.tsa.stattools import adfuller, kpss
 from scipy.signal import butter, filtfilt, welch
 import shap
 from lifelines import KaplanMeierFitter
+from scipy.stats import f_oneway
 import requests
 import zipfile
 import logging
@@ -334,14 +335,18 @@ def st_shap(plot, height=None):
     shap_html = f"<head>{shap.getjs()}</head><body>{plot.html()}</body>"
     st.components.v1.html(shap_html, height=height)
 
-# ---- Cross-Validation and Model Evaluation ----
-st.subheader("Model Evaluation and Statistical Validation")
-def perform_cross_validation(X, y):
-    cv = StratifiedKFold(n_splits=5)
-    model = RandomForestClassifier()
-    cv_scores = cross_val_score(model, X, y, cv=cv)
-    st.write(f"Cross-Validation Scores: {cv_scores}")
-    st.write(f"Mean CV Score: {np.mean(cv_scores)}")
+# ---- Statistical Hypothesis Testing Section ----
+st.subheader("Statistical Hypothesis Testing")
 
-if st.button('Perform Cross-Validation'):
-    perform_cross_validation(X, y)
+def perform_anova_test(X, y):
+    preictal = X[y == 0]
+    interictal = X[y == 1]
+    ictal = X[y == 2]
+    
+    # ANOVA Test
+    f_stat, p_value = f_oneway(preictal, interictal, ictal)
+    st.write(f"ANOVA F-Statistic: {f_stat}")
+    st.write(f"p-value: {p_value}")
+
+if st.button('Perform ANOVA'):
+    perform_anova_test(X, y)
