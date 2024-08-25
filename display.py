@@ -2,7 +2,6 @@ import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from lime import lime_tabular
 from sklearn.inspection import permutation_importance, plot_partial_dependence
 import pandas as pd
 import pickle
@@ -325,8 +324,7 @@ elif section == "Model Interpretability":
 
     st.markdown("""
     **Overview:**  
-    Model interpretability is crucial for understanding how machine learning models make decisions. In this section, we explore three different techniques to gain insights:  
-    - **LIME (Local Interpretable Model-agnostic Explanations):** Helps explain predictions of individual instances by approximating the model locally with a simple model.  
+    Model interpretability is crucial for understanding how machine learning models make decisions. In this section, we explore two different techniques to gain insights:  
     - **Permutation Feature Importance:** Measures the importance of features by observing how shuffling the values affects model performance.  
     - **Partial Dependence Plots (PDP):** Shows the relationship between a feature and the predicted outcome averaged across all instances.
     """)
@@ -338,13 +336,6 @@ elif section == "Model Interpretability":
     # Slider to select sample index
     sample_index = st.slider("Select Sample Index for Analysis", 0, len(X) - 1, 13)
     feature_names = [f'Feature {i}' for i in range(X.shape[1])]
-
-    # LIME Explanation
-    st.subheader("LIME Explanation")
-    from lime import lime_tabular
-    explainer = lime_tabular.LimeTabularExplainer(X, feature_names=feature_names, class_names=['Class 0', 'Class 1'], discretize_continuous=True)
-    exp = explainer.explain_instance(X[sample_index], rf_model.predict_proba, num_features=10)
-    st.write(exp.as_html(), unsafe_allow_html=True)
 
     # Permutation Feature Importance
     st.subheader("Permutation Feature Importance")
@@ -369,7 +360,7 @@ elif section == "Model Interpretability":
     # Conclusive remark
     st.markdown("""
     **Conclusion:**  
-    LIME, Permutation Feature Importance, and Partial Dependence Plots offer different perspectives for interpreting model decisions.  
+    Permutation Feature Importance and Partial Dependence Plots offer different perspectives for interpreting model decisions.  
     These techniques provide both local and global insights, enabling us to trust and understand the predictions made by the model.
     """)
 
