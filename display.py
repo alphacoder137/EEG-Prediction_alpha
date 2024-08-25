@@ -2,7 +2,7 @@ import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.inspection import permutation_importance, plot_partial_dependence
+from sklearn.inspection import permutation_importance, PartialDependenceDisplay
 import pandas as pd
 import pickle
 from sklearn.ensemble import RandomForestClassifier
@@ -350,11 +350,11 @@ elif section == "Model Interpretability":
     ax.set_xlabel("Permutation Importance")
     st.pyplot(fig)
 
-    # Partial Dependence Plots (PDP)
+    # Partial Dependence Plots (PDP) using PartialDependenceDisplay
     st.subheader("Partial Dependence Plots (PDP)")
-    from sklearn.inspection import plot_partial_dependence
+    from sklearn.inspection import PartialDependenceDisplay
     fig, ax = plt.subplots(figsize=(10, 6))
-    plot_partial_dependence(rf_model, X, [0, 1], ax=ax)  # Adjust the feature indices as needed
+    PartialDependenceDisplay.from_estimator(rf_model, X, [0, 1], ax=ax)  # Adjust the feature indices as needed
     st.pyplot(fig)
 
     # Conclusive remark
