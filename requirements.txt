@@ -9,4 +9,3 @@ statsmodels
 lifelines
 scikit-learn
 requests
-lime
