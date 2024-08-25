@@ -318,79 +318,58 @@ elif section == "Survival Analysis":
         This information is crucial for both clinicians and patients in managing epilepsy and planning treatment strategies.
         """)
 
-# ---- Model Interpretability with SHAP ----
-elif section == "SHAP Model Interpretability":
-    st.header("Model Interpretability with SHAP")
-
-# ---- Model Interpretability with SHAP ----
-elif section == "SHAP Model Interpretability":
-    st.header("Model Interpretability with SHAP")
+# ---- Model Interpretability ----
+elif section == "Model Interpretability":
+    st.header("Model Interpretability")
 
     st.markdown("""
     **Overview:**  
-    SHAP (SHapley Additive exPlanations) is a game-theoretic approach to explain the output of machine learning models.  
-    In this section, we use SHAP to understand the contributions of each feature in the EEG data towards the model’s predictions.  
-    We visualize the SHAP force plot, global feature importance, and detailed waterfall plots to gain insights into the model’s decision-making process.
+    Model interpretability is crucial for understanding how machine learning models make decisions. In this section, we explore three different techniques to gain insights:  
+    - **LIME (Local Interpretable Model-agnostic Explanations):** Helps explain predictions of individual instances by approximating the model locally with a simple model.  
+    - **Permutation Feature Importance:** Measures the importance of features by observing how shuffling the values affects model performance.  
+    - **Partial Dependence Plots (PDP):** Shows the relationship between a feature and the predicted outcome averaged across all instances.
     """)
 
-    # Fit the model and generate SHAP values
+    # Fit the model
     rf_model = RandomForestClassifier()
     rf_model.fit(X, y)
-    explainer = shap.TreeExplainer(rf_model)
-    shap_values = explainer.shap_values(X)
 
     # Slider to select sample index
-    sample_index = st.slider("Select Sample Index for SHAP Analysis", 0, len(X) - 1, 13)
+    sample_index = st.slider("Select Sample Index for Analysis", 0, len(X) - 1, 13)
+    feature_names = [f'Feature {i}' for i in range(X.shape[1])]
 
-    # Define SHAP visualization functions
-    def st_shap(plot, height=None):
-        shap_html = f"<head>{shap.getjs()}</head><body>{plot.html()}</body>"
-        st.components.v1.html(shap_html, height=height)
+    # LIME Explanation
+    st.subheader("LIME Explanation")
+    from lime import lime_tabular
+    explainer = lime_tabular.LimeTabularExplainer(X, feature_names=feature_names, class_names=['Class 0', 'Class 1'], discretize_continuous=True)
+    exp = explainer.explain_instance(X[sample_index], rf_model.predict_proba, num_features=10)
+    st.write(exp.as_html(), unsafe_allow_html=True)
 
-    def visualize_shap_values(model, X, sample_index, class_index=1):
-        explainer = shap.TreeExplainer(model)
-        shap_values = explainer.shap_values(X)
-        
-        # Force Plot
-        st.write("### SHAP Force Plot for the Selected Sample")
-        st_shap(
-            shap.force_plot(
-                explainer.expected_value[class_index], 
-                shap_values[class_index][sample_index], 
-                X[sample_index]
-            )
-        )
+    # Permutation Feature Importance
+    st.subheader("Permutation Feature Importance")
+    from sklearn.inspection import permutation_importance
+    perm_importance = permutation_importance(rf_model, X, y, n_repeats=10, random_state=42)
+    sorted_idx = perm_importance.importances_mean.argsort()
 
-        # Global Feature Importance
-        st.write("### Global Feature Importance")
-        fig, ax = plt.subplots(facecolor='#1f1f2e')
-        ax.set_facecolor('#1f1f2e')
-        shap.summary_plot(shap_values[class_index], X, plot_type="bar", show=False)
-        st.pyplot(fig)
+    fig, ax = plt.subplots()
+    ax.barh(range(X.shape[1]), perm_importance.importances_mean[sorted_idx])
+    ax.set_yticks(range(X.shape[1]))
+    ax.set_yticklabels([feature_names[i] for i in sorted_idx])
+    ax.set_xlabel("Permutation Importance")
+    st.pyplot(fig)
 
-        # Detailed SHAP Waterfall Plot
-        st.write("### SHAP Waterfall Plot for Detailed Explanation")
-        fig, ax = plt.subplots(facecolor='#1f1f2e')
-        ax.set_facecolor('#1f1f2e')
-        shap.waterfall_plot(
-            shap.Explanation(
-                values=shap_values[class_index][sample_index], 
-                base_values=explainer.expected_value[class_index], 
-                data=X[sample_index], 
-                feature_names=[f'Feature {i}' for i in range(X.shape[1])]
-            )
-        )
-        st.pyplot(fig)
-
-    # Button to visualize SHAP values
-    if st.button('Visualize SHAP Values'):
-        visualize_shap_values(rf_model, X, sample_index, class_index=1)  # Adjust class_index as needed
+    # Partial Dependence Plots (PDP)
+    st.subheader("Partial Dependence Plots (PDP)")
+    from sklearn.inspection import plot_partial_dependence
+    fig, ax = plt.subplots(figsize=(10, 6))
+    plot_partial_dependence(rf_model, X, [0, 1], ax=ax)  # Adjust the feature indices as needed
+    st.pyplot(fig)
 
     # Conclusive remark
     st.markdown("""
     **Conclusion:**  
-    SHAP provides interpretable explanations of model predictions, hlping us understand which features contribute most to the classification decision.  
-    This is essential for building trust in AI models used in medical applications, where understanding decision factors is critical.
+    LIME, Permutation Feature Importance, and Partial Dependence Plots offer different perspectives for interpreting model decisions.  
+    These techniques provide both local and global insights, enabling us to trust and understand the predictions made by the model.
     """)
 
 # ---- Statistical Hypothesis Testing ----
