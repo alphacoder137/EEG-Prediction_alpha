@@ -2,7 +2,8 @@ import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-import shap
+from lime import lime_tabular
+from sklearn.inspection import permutation_importance, plot_partial_dependence
 import pandas as pd
 import pickle
 from sklearn.ensemble import RandomForestClassifier
