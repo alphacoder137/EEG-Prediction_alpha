@@ -322,6 +322,10 @@ elif section == "Survival Analysis":
 elif section == "SHAP Model Interpretability":
     st.header("Model Interpretability with SHAP")
 
+# ---- Model Interpretability with SHAP ----
+elif section == "SHAP Model Interpretability":
+    st.header("Model Interpretability with SHAP")
+
     st.markdown("""
     **Overview:**  
     SHAP (SHapley Additive exPlanations) is a game-theoretic approach to explain the output of machine learning models.  
@@ -343,7 +347,7 @@ elif section == "SHAP Model Interpretability":
         shap_html = f"<head>{shap.getjs()}</head><body>{plot.html()}</body>"
         st.components.v1.html(shap_html, height=height)
 
-    def visualize_shap_values(model, X, sample_index):
+    def visualize_shap_values(model, X, sample_index, class_index=1):
         explainer = shap.TreeExplainer(model)
         shap_values = explainer.shap_values(X)
         
@@ -351,8 +355,8 @@ elif section == "SHAP Model Interpretability":
         st.write("### SHAP Force Plot for the Selected Sample")
         st_shap(
             shap.force_plot(
-                explainer.expected_value[1], 
-                shap_values[1][sample_index], 
+                explainer.expected_value[class_index], 
+                shap_values[class_index][sample_index], 
                 X[sample_index]
             )
         )
@@ -361,7 +365,7 @@ elif section == "SHAP Model Interpretability":
         st.write("### Global Feature Importance")
         fig, ax = plt.subplots(facecolor='#1f1f2e')
         ax.set_facecolor('#1f1f2e')
-        shap.summary_plot(shap_values[1], X, plot_type="bar", show=False)
+        shap.summary_plot(shap_values[class_index], X, plot_type="bar", show=False)
         st.pyplot(fig)
 
         # Detailed SHAP Waterfall Plot
@@ -370,8 +374,8 @@ elif section == "SHAP Model Interpretability":
         ax.set_facecolor('#1f1f2e')
         shap.waterfall_plot(
             shap.Explanation(
-                values=shap_values[1][sample_index], 
-                base_values=explainer.expected_value[1], 
+                values=shap_values[class_index][sample_index], 
+                base_values=explainer.expected_value[class_index], 
                 data=X[sample_index], 
                 feature_names=[f'Feature {i}' for i in range(X.shape[1])]
             )
@@ -380,7 +384,7 @@ elif section == "SHAP Model Interpretability":
 
     # Button to visualize SHAP values
     if st.button('Visualize SHAP Values'):
-        visualize_shap_values(rf_model, X, sample_index)
+        visualize_shap_values(rf_model, X, sample_index, class_index=1)  # Adjust class_index as needed
 
     # Conclusive remark
     st.markdown("""
