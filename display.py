@@ -21,7 +21,7 @@ section = st.sidebar.selectbox("Choose a section", [
     "Signal Processing", 
     "Bayesian Inference", 
     "Survival Analysis", 
-    "Model Interpretability", 
+    "Advanced Data Analysis and Model Insights", 
     "Statistical Hypothesis Testing"
 ])
 
@@ -318,51 +318,83 @@ elif section == "Survival Analysis":
         This information is crucial for both clinicians and patients in managing epilepsy and planning treatment strategies.
         """)
 
-# ---- Model Interpretability ----
-elif section == "Model Interpretability":
-    st.header("Model Interpretability")
+# ---- Advanced Data Analysis and Model Insights ----
+elif section == "Advanced Data Analysis and Model Insights":
+    st.header("Advanced Data Analysis and Model Insights")
 
     st.markdown("""
     **Overview:**  
-    Model interpretability is crucial for understanding how machine learning models make decisions. In this section, we explore two different techniques to gain insights:  
-    - **Permutation Feature Importance:** Measures the importance of features by observing how shuffling the values affects model performance.  
-    - **Partial Dependence Plots (PDP):** Shows the relationship between a feature and the predicted outcome averaged across all instances.
+    This section provides comprehensive insights into the data and model performance through various visualizations, including correlation analysis, time-series exploration, and hyperparameter tuning evaluations.
     """)
 
-    # Fit the model
-    rf_model = RandomForestClassifier()
-    rf_model.fit(X, y)
+    def plot_correlation_heatmap(X):
+        corr_matrix = pd.DataFrame(X).corr()
+        fig, ax = plt.subplots(figsize=(10, 6))
+        sns.heatmap(corr_matrix, annot=True, cmap="coolwarm", ax=ax)
+        ax.set_title("Feature Correlation Heatmap")
+        st.pyplot(fig)
 
-    # Slider to select sample index
-    sample_index = st.slider("Select Sample Index for Analysis", 0, len(X) - 1, 13)
-    feature_names = [f'Feature {i}' for i in range(X.shape[1])]
+    def plot_time_series_analysis(X, y, sample_index):
+        plt.figure(figsize=(12, 6))
+        plt.plot(X[sample_index])
+        plt.title(f"Time-Series Analysis for Sample Index {sample_index}")
+        plt.xlabel("Time")
+        plt.ylabel("EEG Signal")
+        plt.grid(True, linestyle='--', alpha=0.7)
+        st.pyplot(plt)
 
-    # Permutation Feature Importance
-    st.subheader("Permutation Feature Importance")
-    from sklearn.inspection import permutation_importance
-    perm_importance = permutation_importance(rf_model, X, y, n_repeats=10, random_state=42)
-    sorted_idx = perm_importance.importances_mean.argsort()
+    def plot_hyperparameter_heatmap(hyperparam_combinations, validation_scores):
+        fig, ax = plt.subplots(figsize=(10, 6))
+        sns.heatmap(validation_scores, annot=True, fmt=".2f", cmap="viridis", xticklabels=hyperparam_combinations['param_1'], yticklabels=hyperparam_combinations['param_2'], ax=ax)
+        ax.set_title("Hyperparameter Tuning Heatmap")
+        ax.set_xlabel("Parameter 1")
+        ax.set_ylabel("Parameter 2")
+        st.pyplot(fig)
 
-    fig, ax = plt.subplots()
-    ax.barh(range(X.shape[1]), perm_importance.importances_mean[sorted_idx])
-    ax.set_yticks(range(X.shape[1]))
-    ax.set_yticklabels([feature_names[i] for i in sorted_idx])
-    ax.set_xlabel("Permutation Importance")
-    st.pyplot(fig)
+    def plot_validation_score_lineplot(hyperparams, validation_scores):
+        plt.figure(figsize=(10, 6))
+        plt.plot(hyperparams, validation_scores, marker='o')
+        plt.title("Effect of Hyperparameters on Validation Scores")
+        plt.xlabel("Hyperparameter Value")
+        plt.ylabel("Validation Score")
+        plt.grid(True, linestyle='--', alpha=0.7)
+        st.pyplot(plt)
 
-    # Partial Dependence Plots (PDP) using PartialDependenceDisplay
-    st.subheader("Partial Dependence Plots (PDP)")
-    from sklearn.inspection import PartialDependenceDisplay
-    fig, ax = plt.subplots(figsize=(10, 6))
-    PartialDependenceDisplay.from_estimator(rf_model, X, [0, 1], ax=ax)  # Adjust the feature indices as needed
-    st.pyplot(fig)
+    # Sample index for time-series analysis
+    sample_index = st.slider("Select Sample Index for Time-Series Analysis", 0, len(X) - 1, 0)
 
-    # Conclusive remark
-    st.markdown("""
-    **Conclusion:**  
-    Permutation Feature Importance and Partial Dependence Plots offer different perspectives for interpreting model decisions.  
-    These techniques provide both local and global insights, enabling us to trust and understand the predictions made by the model.
-    """)
+    if st.button('Analyze Data and Model Insights'):
+        # Correlation Heatmap
+        st.subheader("Correlation Heatmap")
+        plot_correlation_heatmap(X)
+
+        # Time-Series Analysis
+        st.subheader("Time-Series Analysis")
+        plot_time_series_analysis(X, y, sample_index)
+
+        # Hyperparameter Tuning Heatmap
+        st.subheader("Hyperparameter Tuning Heatmap")
+        # Example data (replace with your actual hyperparameter combinations and scores)
+        hyperparam_combinations = {
+            'param_1': [0.1, 0.2, 0.3],
+            'param_2': [1, 2, 3]
+        }
+        validation_scores = np.array([[0.7, 0.75, 0.78], [0.8, 0.82, 0.85], [0.76, 0.79, 0.81]])
+        plot_hyperparameter_heatmap(hyperparam_combinations, validation_scores)
+
+        # Validation Score Line Plot
+        st.subheader("Validation Score Line Plot")
+        # Example data (replace with your actual hyperparameter values and validation scores)
+        hyperparams = [0.1, 0.2, 0.3, 0.4, 0.5]
+        validation_scores = [0.7, 0.75, 0.8, 0.78, 0.76]
+        plot_validation_score_lineplot(hyperparams, validation_scores)
+
+        # Conclusive remark
+        st.markdown("""
+        **Conclusion:**  
+        The visualizations provided here offer insights into data relationships, trends in time-series signals, and the impact of hyperparameter tuning on model performance.  
+        Understanding these factors is essential for improving model accuracy and ensuring the stability of predictions across different configurations.
+        """)
 
 # ---- Statistical Hypothesis Testing ----
 elif section == "Statistical Hypothesis Testing":
