@@ -21,7 +21,7 @@ section = st.sidebar.selectbox("Choose a section", [
     "Signal Processing", 
     "Bayesian Inference", 
     "Survival Analysis", 
-    "SHAP Model Interpretability", 
+    "Model Interpretability", 
     "Statistical Hypothesis Testing"
 ])
 
