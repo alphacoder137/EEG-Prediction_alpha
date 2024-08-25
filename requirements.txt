@@ -3,6 +3,7 @@ streamlit
 pandas
 numpy
 scipy
+shap
 matplotlib
 seaborn
 statsmodels
