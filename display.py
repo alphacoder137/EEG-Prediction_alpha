@@ -330,12 +330,12 @@ elif section == "SHAP Model Interpretability":
     """)
 
     def st_shap(plot, height=None):
-    shap_html = f"<head>{shap.getjs()}</head><body>{plot.html()}</body>"
-    st.components.v1.html(shap_html, height=height)
+        shap_html = f"<head>{shap.getjs()}</head><body>{plot.html()}</body>"
+        st.components.v1.html(shap_html, height=height)
 
     def visualize_shap_values(model, X, sample_index):
-    explainer = shap.TreeExplainer(model)
-    shap_values = explainer.shap_values(X)
+        explainer = shap.TreeExplainer(model)
+        shap_values = explainer.shap_values(X)
     
     # Force Plot
     st.write("### SHAP Force Plot for the Selected Sample")
