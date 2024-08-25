@@ -327,7 +327,7 @@ elif section == "Advanced Data Analysis and Model Insights":
 
     st.markdown("""
     **Overview:**  
-    This section provides comprehensive insights into the data and model performance through various visualizations, including correlation analysis, time-series exploration, and hyperparameter tuning evaluations.
+    This section provides comprehensive insights into the data and model performance through various visualizations, including correlation analysis, time-series exploration, and hyperparameter tuning evaluations. Currently modifying and testing this section as it often causes app crashes due to TLEs 
     """)
 
     def plot_correlation_heatmap(X):
