@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.inspection import permutation_importance, PartialDependenceDisplay
 import pandas as pd
+from numpy import trapz
 import pickle
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import BayesianRidge
