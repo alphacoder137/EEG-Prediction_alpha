@@ -389,7 +389,7 @@ elif section == "SHAP Model Interpretability":
     # Conclusive remark
     st.markdown("""
     **Conclusion:**  
-    SHAP provides interpretable explanations of model predictions, helping us understand which features contribute most to the classification decision.  
+    SHAP provides interpretable explanations of model predictions, hlping us understand which features contribute most to the classification decision.  
     This is essential for building trust in AI models used in medical applications, where understanding decision factors is critical.
     """)
 
