@@ -6,7 +6,7 @@ scipy
 matplotlib
 seaborn
 statsmodels
-shap
 lifelines
 scikit-learn
 requests
+lime
