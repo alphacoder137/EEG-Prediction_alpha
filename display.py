@@ -3,17 +3,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import shap
-from sklearn.inspection import permutation_importance, PartialDependenceDisplay
 import pandas as pd
-from numpy import trapz
 import pickle
+
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import BayesianRidge
+from sklearn.metrics import accuracy_score
+
 from statsmodels.tsa.stattools import adfuller, kpss
 from scipy.signal import butter, filtfilt, welch
-from lifelines import KaplanMeierFitter
 from scipy.stats import f_oneway
-from sklearn.metrics import accuracy_score
+from lifelines import KaplanMeierFitter
+
 
 # Sidebar navigation
 st.sidebar.title("Navigation")
